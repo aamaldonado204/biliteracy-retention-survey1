@@ -130,4 +130,44 @@ for scale in SCALES:
     scored_vals: List[int] = []
 
     for idx, (prompt, is_reverse) in enumerate(scale.items, start=1):
-        key =
+        key=key, f"{scale.code}_{idx}"
+        val = st.radio(
+    prompt,
+    options=[1, 2, 3, 4, 5],
+    format_func=lambda x: f"{x} - {LIKERT_LABELS[x]}",
+    key=f"{scale.code}_{idx}",
+    horizontal=True,
+)
+        )
+        raw_vals.append(val)
+        scored_vals.append(reverse_score(val) if is_reverse else val)
+
+    raw[scale.code] = raw_vals
+    scored[scale.code] = scored_vals
+    st.divider()
+
+if st.button("Submit"):
+    if not participant_id.strip():
+        st.error("Please enter a Participant ID before submitting.")
+    else:
+        # Compute and show scale scores
+        st.success("Thank you! Your response has been recorded (results shown below).")
+
+        results = []
+        for scale in SCALES:
+            mean = sum(scored[scale.code]) / len(scored[scale.code])
+            results.append(
+                {
+                    "Scale": f"{scale.name} [{scale.code}]",
+                    "Mean": round(mean, 2),
+                    "Level": interpret(mean),
+                }
+            )
+
+        st.subheader("Survey Summary")
+        st.table(results)
+
+        st.info(
+            "Next step: to actually SAVE responses, we’ll connect this app to Google Sheets or a database. "
+            "Right now it only displays results."
+        )
